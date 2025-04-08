@@ -1,0 +1,23 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.5",
+   "Default View_TopLeft":"-88,-77",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r6  2020-01-29 bk=1.5227 VDI=41 GEI=36 GUI=JA:9.0 non-TLS
+#  -string -flagsOSRD
+preplace port iRst -pg 1 -lvl 0 -x -10 -y 40 -defaultsOSRD
+preplace port iClk -pg 1 -lvl 0 -x -10 -y -30 -defaultsOSRD
+preplace port iRx -pg 1 -lvl 0 -x -10 -y 110 -defaultsOSRD
+preplace port oTx -pg 1 -lvl 3 -x 490 -y 30 -defaultsOSRD
+preplace inst Debounce_Switch_0 -pg 1 -lvl 1 -x 130 -y 30 -defaultsOSRD
+preplace inst uart_top_0 -pg 1 -lvl 2 -x 380 -y 30 -defaultsOSRD
+preplace netloc Debounce_Switch_0_o_Switch 1 1 1 N 30
+preplace netloc i_Switch_0_1 1 0 1 N 40
+preplace netloc i_Clk_0_1 1 0 2 10 -40 240
+preplace netloc iRx_0_1 1 0 2 NJ 110 240J
+preplace netloc uart_top_0_oTx 1 2 1 N 30
+levelinfo -pg 1 -10 130 380 490
+pagesize -pg 1 -db -bbox -sgen -90 -60 570 280
+"
+}
+0

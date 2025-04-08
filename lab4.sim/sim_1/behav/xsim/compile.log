@@ -1,0 +1,10 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/zhang/cdd/lab3/Lab3.srcs/sources_1/new/carry_select_section.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module carry_select_section
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/zhang/cdd/lab3/Lab3.srcs/sources_1/imports/new/full_adder.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module full_adder
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/zhang/cdd/lab4/lab4.srcs/sources_1/new/mp_adder.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module mp_adder
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/zhang/cdd/lab3/Lab3.srcs/sources_1/imports/new/ripple_carry_adder_Nb.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module ripple_carry_adder_Nb
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/zhang/cdd/lab3/Lab3.srcs/sim_1/new/mp_adder_TB.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module mp_adder_TB
