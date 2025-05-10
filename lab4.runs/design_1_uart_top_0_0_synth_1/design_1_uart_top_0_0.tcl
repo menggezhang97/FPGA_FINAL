@@ -89,7 +89,7 @@ set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
 read_verilog -library xil_defaultlib {
-  C:/Users/zhang/cdd/lab4/lab4.srcs/sources_1/new/clsa_2.v
+  C:/Users/zhang/cdd/lab4/lab4.srcs/sources_1/new/clsa_dynamic.v
   C:/Users/zhang/cdd/lab4/lab4.srcs/sources_1/new/clsa_unit.v
   C:/Users/zhang/cdd/lab3/Lab3.srcs/sources_1/imports/new/full_adder.v
   C:/Users/zhang/cdd/lab4/lab4.srcs/sources_1/new/mp_adder.v
