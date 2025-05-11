@@ -6,7 +6,7 @@ module mp_adder #(
       // if the operands you want to add have an OPERAND_WIDTH non-multiple of ADDER_WIDTH
       //   you'll have to extend them by padding them with zeroes
       parameter OPERAND_WIDTH = 512,
-      parameter ADDER_WIDTH   = 128,
+      parameter ADDER_WIDTH   = 32,
       parameter N_ITERATIONS  = OPERAND_WIDTH / ADDER_WIDTH
     )
     (
