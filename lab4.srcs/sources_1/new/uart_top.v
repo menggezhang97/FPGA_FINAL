@@ -21,7 +21,7 @@
 
 module uart_top #(
     parameter   OPERAND_WIDTH = 512,
-    parameter   ADDER_WIDTH   = 128,
+    parameter   ADDER_WIDTH   = 32,
     parameter   NBYTES        = OPERAND_WIDTH / 8,
     // values for the UART (in case we want to change them)
     parameter   CLK_FREQ      = 125_000_000,
@@ -41,13 +41,20 @@ module uart_top #(
   reg [NBYTES*8 : 0] rRes;
   wire [NBYTES*8 : 0] wAddRes;
   
+  // Operation mode register (0 = add, 1 = subtract)
+  reg         rOpMode;
+  // Opcode constants
+  localparam  OP_ADD = 8'h00;
+  localparam  OP_SUB = 8'h01;
+  
   // State definition  
   localparam s_IDLE         = 3'b000;
-  localparam s_WAIT_RX      = 3'b001;
-  localparam s_ADD          = 3'b010;
-  localparam s_TX           = 3'b011;
-  localparam s_WAIT_TX      = 3'b100;
-  localparam s_DONE         = 3'b101;
+  localparam s_WAIT_OPCODE  = 3'b001;
+  localparam s_WAIT_RX      = 3'b010;
+  localparam s_ADD          = 3'b011;
+  localparam s_TX           = 3'b100;
+  localparam s_WAIT_TX      = 3'b101;
+  localparam s_DONE         = 3'b110;
    
   // Declare all variables needed for the finite state machine 
   // -> the FSM state
@@ -58,6 +65,7 @@ module uart_top #(
   reg [7:0]   rTxByte;
   
   reg         rStartAdd;
+  reg         rAddSub;    // Added register to store operation type
   wire        wAddDone;
   
   wire        wTxBusy;
@@ -91,6 +99,7 @@ module uart_top #(
   ( .iClk(iClk), 
     .iRst(iRst), 
     .iStart(rStartAdd), 
+    .iAddSub(rAddSub),   // Pass the operation mode to the adder
     .iOpA(rA), 
     .iOpB(rB), 
     .oRes(wAddRes), 
@@ -117,6 +126,7 @@ module uart_top #(
       rTxByte <= 0;
       rA <= 0;
       rB <= 0;
+      rAddSub <= 0;
     end 
   else 
     begin
@@ -124,7 +134,26 @@ module uart_top #(
    
         s_IDLE :
           begin
-            rFSM <= s_WAIT_RX;
+            rFSM <= s_WAIT_OPCODE;
+            // Reset RX counter for opcode and operands
+            rRxCnt <= 0;
+          end
+          
+        s_WAIT_OPCODE :
+          begin
+            // Wait for the opcode byte
+            if (wRxDone == 1)
+              begin
+                // Store operation mode based on received opcode
+                if (wRxByte == OP_ADD)
+                  rAddSub <= 0;   // Addition
+                else if (wRxByte == OP_SUB)
+                  rAddSub <= 1;   // Subtraction
+                // Else keep current mode (default is addition)
+                
+                // Move to next state to receive operands
+                rFSM <= s_WAIT_RX;
+              end
           end
           
         s_WAIT_RX :
@@ -142,7 +171,7 @@ module uart_top #(
                     begin
                     rB <= {rB[NBYTES*8-9:0], wRxByte};
                     rRxCnt <= rRxCnt + 1;
-                  // If we've received all bytes, start transmitting
+                    // If we've received all bytes, start transmitting
                     if (rRxCnt == NBYTES*2 - 1)
                         begin
                         rFSM <= s_ADD;
@@ -152,28 +181,28 @@ module uart_top #(
                 end
             end
             
-s_ADD :
-  begin
-    if (wAddDone == 1)
-      begin
-        rFSM <= s_TX;
-        rAddCycleCnt <= 0;
-        rStartAdd <= 0;
-        rRes <= wAddRes;
-      end
-    else if (rStartAdd == 0 && rAddCycleCnt == 0) //only enable adder once
-      begin
-        rStartAdd <= 1;
-        rAddCycleCnt <= rAddCycleCnt + 1;
-        rFSM <= s_ADD;
-      end
-    else
-      begin
-        rStartAdd <= 0; //only enable adder once
-        rAddCycleCnt <= rAddCycleCnt + 1;
-        rFSM <= s_ADD;
-      end
-  end
+        s_ADD :
+          begin
+            if (wAddDone == 1)
+              begin
+                rFSM <= s_TX;
+                rAddCycleCnt <= 0;
+                rStartAdd <= 0;
+                rRes <= wAddRes;
+              end
+            else if (rStartAdd == 0 && rAddCycleCnt == 0) //only enable adder once
+              begin
+                rStartAdd <= 1;
+                rAddCycleCnt <= rAddCycleCnt + 1;
+                rFSM <= s_ADD;
+              end
+            else
+              begin
+                rStartAdd <= 0; //only enable adder once
+                rAddCycleCnt <= rAddCycleCnt + 1;
+                rFSM <= s_ADD;
+              end
+          end
              
         s_TX :
           begin

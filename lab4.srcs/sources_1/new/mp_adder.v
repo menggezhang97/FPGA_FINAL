@@ -13,6 +13,7 @@ module mp_adder #(
     input  wire                       iClk,
     input  wire                       iRst,
     input  wire                       iStart,
+    input  wire                       iAddSub,   // 0 = add, 1 = subtract
     input  wire [OPERAND_WIDTH-1:0]   iOpA,
     input  wire [OPERAND_WIDTH-1:0]   iOpB,
     output wire [OPERAND_WIDTH:0]     oRes,  
@@ -36,6 +37,15 @@ module mp_adder #(
     begin
       if(iRst==1)       regB_Q <= {OPERAND_WIDTH{1'b0}}; 
       else              regB_Q <= regB_D;
+    end
+    
+    // Store the add/sub mode in a register
+    reg regAddSub;
+    
+    always @(posedge iClk)
+    begin
+      if(iRst==1)       regAddSub <= 1'b0; 
+      else if(iStart)   regAddSub <= iAddSub;
     end
     
     // Describe a 2-input Multiplexer for register A
@@ -67,21 +77,23 @@ module mp_adder #(
     // Its outputs are one ADDER_WIDTH-bit result and a 1-bit carry-out
     wire [ADDER_WIDTH-1:0]  operandA;
     wire [ADDER_WIDTH-1:0]  operandB;
+    wire [ADDER_WIDTH-1:0]  operandB_modified; // For two's complement in subtraction
     wire                    carry_in;
     wire [ADDER_WIDTH-1:0]  result;
     wire                    carry_out;
+
+    // Handle two's complement for subtraction (invert bits of B if subtraction)
+    assign operandB_modified = regAddSub ? ~operandB : operandB;
 
 clsa_dynamic #(
         .SECTION_WIDTH(ADDER_WIDTH)
     ) carry_select_inst (
         .iA(operandA),
-        .iB(operandB),
+        .iB(operandB_modified),
         .iCin(carry_in),
         .oSum(result),
         .oCout(carry_out)
     );
-
-
 
     // Describe an OPERAND_WIDTH-bit register for storing the result
     // This shift register should palce the adder output at the MSB ADDER_WIDTH-bits,
@@ -105,12 +117,13 @@ clsa_dynamic #(
 
     // Describe a 1-bit multiplexer for selecting carry-in
     // It should select either of these two:
-    //   - 0
+    //   - 0 or 1 (depending on add/sub mode in first cycle)
     //   - carry-out
     reg  muxCarry_sel;
     wire muxCarryIn;
 
-    assign muxCarryIn = (muxCarry_sel == 0) ? 1'b0 : regCout;
+    // For subtraction, inject +1 in the first cycle to complete two's complement
+    assign muxCarryIn = (muxCarry_sel == 0) ? regAddSub : regCout;
 
     // Connect the inputs of adder to the outputs of A and B registers
     // and to the carry mux
@@ -184,7 +197,7 @@ clsa_dynamic #(
               begin
                 muxA_sel = 1;
                 muxB_sel = 1;
-                muxCarry_sel = 0;
+                muxCarry_sel = 0; // Use initial carry-in (0 for add, 1 for sub)
                 wCnt_next = rCnt_Current + 1;
                 
                 wFSM_next = s_ADD_WORDS;
@@ -194,7 +207,7 @@ clsa_dynamic #(
               begin
                 muxA_sel = 1;
                 muxB_sel = 1;
-                muxCarry_sel = 1;
+                muxCarry_sel = 1; // Use the previous carry-out
                 wCnt_next = rCnt_Current + 1;
                 
                 if ( rCnt_Current < (N_ITERATIONS - 1) )
@@ -238,5 +251,4 @@ clsa_dynamic #(
 
     assign oDone = regDone;
     
-
 endmodule
